@@ -7,11 +7,18 @@ from codes.datasets import *
 from codes.networks import *
 from codes.inspection import eval_encoder_NN_multiK
 from codes.utils import *
+import os
+
+# gpu 지정
+# device = torch.device('cuda:2' if torch.cuda.is_available() else 'cpu')
+# print(device)
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+os.environ["CUDA_VISIBLE_DEVICES"] = "2"
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument('--obj', default='hazelnut', type=str)
-parser.add_argument('--lambda_value', default=1, type=float)
+parser.add_argument('--obj', default='cable', type=str) # hazelnut
+parser.add_argument('--lambda_value', default=1e-3, type=float) # 1
 parser.add_argument('--D', default=64, type=int)
 
 parser.add_argument('--epochs', default=300, type=int)
@@ -52,6 +59,7 @@ def train():
         loader = DataLoader(dataset, batch_size=64, shuffle=True, num_workers=2, pin_memory=True)
 
     print('Start training')
+    best_aurocs = 0
     for i_epoch in range(args.epochs):
         if i_epoch != 0:
             for module in modules:
@@ -72,11 +80,18 @@ def train():
                 opt.step()
 
         aurocs = eval_encoder_NN_multiK(enc, obj)
-        log_result(obj, aurocs)
-        enc.save(obj)
+        log_result(obj, aurocs, i_epoch)
+
+        # sum aurocs 가 갱신되거나, epoch10이 지나면 저장
+        if best_aurocs < aurocs['det_sum']:
+            best_aurocs = aurocs['det_sum']
+            enc.save(obj, i_epoch, best_aurocs)
+        elif i_epoch % 10 == 0:
+            enc.save(obj, i_epoch, aurocs['det_sum'])
 
 
-def log_result(obj, aurocs):
+
+def log_result(obj, aurocs, i_epoch):
     det_64 = aurocs['det_64'] * 100
     seg_64 = aurocs['seg_64'] * 100
 
@@ -89,7 +104,7 @@ def log_result(obj, aurocs):
     det_mult = aurocs['det_mult'] * 100
     seg_mult = aurocs['seg_mult'] * 100
 
-    print(f'|K64| Det: {det_64:4.1f} Seg: {seg_64:4.1f} |K32| Det: {det_32:4.1f} Seg: {seg_32:4.1f} |mult| Det: {det_sum:4.1f} Seg: {seg_sum:4.1f} |mult| Det: {det_mult:4.1f} Seg: {seg_mult:4.1f} ({obj})')
+    print(f'[epoch {i_epoch}] |K64| Det: {det_64:4.1f} Seg: {seg_64:4.1f} |K32| Det: {det_32:4.1f} Seg: {seg_32:4.1f} |sum| Det: {det_sum:4.1f} Seg: {seg_sum:4.1f} |mult| Det: {det_mult:4.1f} Seg: {seg_mult:4.1f} ({obj})')
 
 
 if __name__ == '__main__':
