@@ -5,7 +5,8 @@ from glob import glob
 from sklearn.metrics import roc_auc_score
 import os
 
-DATASET_PATH = '/path/to/the/dataset'
+DATASET_PATH = '/home/hajung/Anomaly-Detection-PatchSVDD-PyTorch/datasets'
+# DATASET_PATH = '../datasets'
 
 
 __all__ = ['objs', 'set_root_path',
