@@ -35,7 +35,7 @@ def assess_anomaly_maps(obj, anomaly_maps):
 
 #########################
 
-def eval_encoder_NN_multiK(enc, obj):
+def eval_encoder_NN_multiK(enc, obj):      # 느림 -> train data 관련 get_x와 infer는 미리 해서 저장해두면 속도 향상 예상. 실험해보기
     x_tr = mvtecad.get_x_standardized(obj, mode='train')
     x_te = mvtecad.get_x_standardized(obj, mode='test')
 
@@ -98,7 +98,7 @@ def measure_emb_NN(emb_te, emb_tr, method='kdt', NN=1):
     D = emb_tr.shape[-1]
     train_emb_all = emb_tr.reshape(-1, D)
 
-    l2_maps, _ = search_NN(emb_te, train_emb_all, method=method, NN=NN)
+    l2_maps, _ = search_NN(emb_te, train_emb_all, method=method, NN=NN)  # test 각 점으로부터, train 중 가장 가까운 점까지의 거리
     anomaly_maps = np.mean(l2_maps, axis=-1)
 
     return anomaly_maps

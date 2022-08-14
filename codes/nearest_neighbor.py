@@ -11,7 +11,7 @@ def search_NN(test_emb, train_emb_flat, NN=1, method='kdt'):
         return search_NN_ngt(test_emb, train_emb_flat, NN=NN)
 
     from sklearn.neighbors import KDTree
-    kdt = KDTree(train_emb_flat)
+    kdt = KDTree(train_emb_flat)                                # train set으로 KDT tree 구축
 
     Ntest, I, J, D = test_emb.shape
     closest_inds = np.empty((Ntest, I, J, NN), dtype=np.int32)
@@ -19,7 +19,7 @@ def search_NN(test_emb, train_emb_flat, NN=1, method='kdt'):
 
     for n in range(Ntest):
         for i in range(I):
-            dists, inds = kdt.query(test_emb[n, i, :, :], return_distance=True, k=NN)
+            dists, inds = kdt.query(test_emb[n, i, :, :], return_distance=True, k=NN)  # 최근접 이웃 NN개(1개) 선택 - 그로부터의 거리, 인덱스
             closest_inds[n, i, :, :] = inds[:, :]
             l2_maps[n, i, :, :] = dists[:, :]
 

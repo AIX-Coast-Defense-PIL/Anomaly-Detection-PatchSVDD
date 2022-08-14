@@ -1,12 +1,19 @@
 import argparse
+from pyexpat import model
 import matplotlib.pyplot as plt
 from codes import mvtecad
 from tqdm import tqdm
 from codes.utils import resize, makedirpath
 
+import os
+
+# gpu 지정
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--obj', default='wood')
+parser.add_argument('--obj', default='bottle')
+parser.add_argument('--ckpt', default='enchier.pkl')
 args = parser.parse_args()
 
 
@@ -45,9 +52,10 @@ def main():
     from codes.networks import EncoderHier
 
     obj = args.obj
+    ckpt = args.ckpt
 
     enc = EncoderHier(K=64, D=64).cuda()
-    enc.load(obj)
+    enc.load(obj, ckpt)
     enc.eval()
     results = eval_encoder_NN_multiK(enc, obj)
     maps = results['maps_mult']

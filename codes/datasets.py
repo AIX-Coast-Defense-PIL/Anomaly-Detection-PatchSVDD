@@ -13,7 +13,7 @@ def generate_coords(H, W, K):
 
 
 def generate_coords_position(H, W, K):
-    with task('P1'):
+    with task('P1'):                        # H, W에서 K 만큼 뺀 것중 랜점(patch1의 좌하 점)
         p1 = generate_coords(H, W, K)
         h1, w1 = p1
 
@@ -23,13 +23,13 @@ def generate_coords_position(H, W, K):
         J = K // 4
 
         K3_4 = 3 * K // 4
-        h_dir, w_dir = pos_to_diff[pos]
+        h_dir, w_dir = pos_to_diff[pos]         # 8 방향 중 하나
         h_del, w_del = np.random.randint(J, size=2)
 
-        h_diff = h_dir * (h_del + K3_4)
+        h_diff = h_dir * (h_del + K3_4)         # 그 방향으로 얼만큼 떨어졌는가(patch 3/4 ~ 4/4 중 한 지점)
         w_diff = w_dir * (w_del + K3_4)
 
-        h2 = h1 + h_diff
+        h2 = h1 + h_diff                         # update 된 위치
         w2 = w1 + w_diff
 
         h2 = np.clip(h2, 0, H - K)
@@ -54,7 +54,7 @@ def generate_coords_svdd(H, W, K):
             h_jit = np.random.randint(-J, J + 1)
             w_jit = np.random.randint(-J, J + 1)
 
-        h2 = h1 + h_jit
+        h2 = h1 + h_jit                             # p1에서 살짝 위, 살짝 아래
         w2 = w1 + w_jit
 
         h2 = np.clip(h2, 0, H - K)

@@ -50,7 +50,7 @@ def get_x(obj, mode='train'):
     fpattern = os.path.join(DATASET_PATH, f'{obj}/{mode}/*/*.png')
     fpaths = sorted(glob(fpattern))
 
-    if mode == 'test':
+    if mode == 'test':     # eval 시 불러오는 데이터 위치 지정
         fpaths1 = list(filter(lambda fpath: os.path.basename(os.path.dirname(fpath)) != 'good', fpaths))
         fpaths2 = list(filter(lambda fpath: os.path.basename(os.path.dirname(fpath)) == 'good', fpaths))
 
@@ -69,9 +69,9 @@ def get_x(obj, mode='train'):
 
 
 def get_x_standardized(obj, mode='train'):
-    x = get_x(obj, mode=mode)
-    mean = get_mean(obj)
-    return (x.astype(np.float32) - mean) / 255
+    x = get_x(obj, mode=mode)   # 이미지->array, 형태&크기 맞추기
+    mean = get_mean(obj)        # 모든 이미지의 pixel 평균
+    return (x.astype(np.float32) - mean) / 255   # image pixel 별 mean에서의 거리
 
 
 def get_label(obj):

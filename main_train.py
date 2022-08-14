@@ -17,7 +17,7 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "2"
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument('--obj', default='cable', type=str) # hazelnut
+parser.add_argument('--obj', default='carpet', type=str) # hazelnut
 parser.add_argument('--lambda_value', default=1e-3, type=float) # 1
 parser.add_argument('--D', default=64, type=int)
 
@@ -44,12 +44,12 @@ def train():
         opt = torch.optim.Adam(params=params, lr=lr)
 
     with task('Datasets'):
-        train_x = mvtecad.get_x_standardized(obj, mode='train')
-        train_x = NHWC2NCHW(train_x)
+        train_x = mvtecad.get_x_standardized(obj, mode='train')   # pixel 별 값 ~ mean 의 차이
+        train_x = NHWC2NCHW(train_x)  # [0, 3, 1, 2] format
 
         rep = 100
         datasets = dict()
-        datasets[f'pos_64'] = PositionDataset(train_x, K=64, repeat=rep)
+        datasets[f'pos_64'] = PositionDataset(train_x, K=64, repeat=rep)   # k : patch size
         datasets[f'pos_32'] = PositionDataset(train_x, K=32, repeat=rep)
         
         datasets[f'svdd_64'] = SVDD_Dataset(train_x, K=64, repeat=rep)
@@ -71,7 +71,7 @@ def train():
 
                 loss_pos_64 = PositionClassifier.infer(cls_64, enc, d['pos_64'])
                 loss_pos_32 = PositionClassifier.infer(cls_32, enc.enc, d['pos_32'])
-                loss_svdd_64 = SVDD_Dataset.infer(enc, d['svdd_64'])
+                loss_svdd_64 = SVDD_Dataset.infer(enc, d['svdd_64'])          # 옆에 있는 애들끼리 뭉치게
                 loss_svdd_32 = SVDD_Dataset.infer(enc.enc, d['svdd_32'])
 
                 loss = loss_pos_64 + loss_pos_32 + args.lambda_value * (loss_svdd_64 + loss_svdd_32)
@@ -86,7 +86,7 @@ def train():
         if best_aurocs < aurocs['det_sum']:
             best_aurocs = aurocs['det_sum']
             enc.save(obj, i_epoch, best_aurocs)
-        elif i_epoch % 10 == 0:
+        elif i_epoch % 30 == 0:
             enc.save(obj, i_epoch, aurocs['det_sum'])
 
 
