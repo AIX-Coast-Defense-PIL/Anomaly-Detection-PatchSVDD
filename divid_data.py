@@ -2,7 +2,7 @@ import os
 import shutil
 from glob import glob
 import pandas as pd
-
+import random
 
 DATASET_PATH = '/home/hajung/Anomaly-Detection-PatchSVDD-PyTorch/datasets/ocean/'
 
@@ -20,6 +20,15 @@ def move_by_exel(DATASET_PATH):
             filename = str(int(labels.loc[i][0])).zfill(4)+'.jpg'
             shutil.move(DATASET_PATH + 'train/' + filename, DATASET_PATH + 'test/unknown/' + filename)
 
+def move_goods_randomly(DATASET_PATH):
+    fpattern = os.path.join(DATASET_PATH, f'train/good/*')
+    fpaths = sorted(glob(fpattern))
+    fpaths = random.sample(fpaths, 20)
+    for fpath in fpaths:
+        next_path = os.path.join(DATASET_PATH, 'test/good/' + fpath.split('/')[-1])
+        shutil.move(fpath, next_path)
+
+
 if __name__ =='__main__':
-    move_by_exel(DATASET_PATH)
-    
+    # move_by_exel(DATASET_PATH)
+    move_goods_randomly(DATASET_PATH)
