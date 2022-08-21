@@ -24,18 +24,21 @@ def save_maps(obj, maps):
     masks = mvtecad.get_mask(obj)
 
     for n in tqdm(range(N)):
-        fig, axes = plt.subplots(ncols=2)
-        fig.set_size_inches(6, 3)
+        fig, axes = plt.subplots(ncols=3)
+        fig.set_size_inches(9, 3)
 
         image = resize(images[n], (128, 128))
         mask = resize(masks[n], (128, 128))
-        image = mark_boundaries(image, mask, color=(1, 0, 0), mode='thick')
+        image_marked = mark_boundaries(image, mask, color=(1, 0, 0), mode='thick')
 
         axes[0].imshow(image)
         axes[0].set_axis_off()
 
-        axes[1].imshow(maps[n], vmax=maps[n].max(), cmap='Reds')
+        axes[1].imshow(image_marked)
         axes[1].set_axis_off()
+
+        axes[2].imshow(maps[n], vmax=maps[n].max(), cmap='Reds')
+        axes[2].set_axis_off()
 
         plt.tight_layout()
         fpath = f'anomaly_maps/{obj}/n{n:03d}.png'
