@@ -4,6 +4,7 @@ from imageio import imread
 from glob import glob
 from sklearn.metrics import roc_auc_score
 import os
+import cv2
 
 DATASET_PATH = '/home/hajung/Anomaly-Detection-PatchSVDD-PyTorch/datasets'
 # DATASET_PATH = '../datasets'
@@ -47,7 +48,7 @@ def set_root_path(new_path):
 
 
 def get_x(obj, mode='train'):
-    fpattern = os.path.join(DATASET_PATH, f'{obj}/{mode}/*/*.png')
+    fpattern = os.path.join(DATASET_PATH, f'{obj}/{mode}/*/*')
     fpaths = sorted(glob(fpattern))
 
     if mode == 'test':     # eval 시 불러오는 데이터 위치 지정
@@ -55,7 +56,8 @@ def get_x(obj, mode='train'):
         fpaths2 = list(filter(lambda fpath: os.path.basename(os.path.dirname(fpath)) == 'good', fpaths))
 
         images1 = np.asarray(list(map(imread, fpaths1)))
-        images2 = np.asarray(list(map(imread, fpaths2)))
+        # images2 = np.asarray(list(map(imread, fpaths2)))
+        images2 = np.asarray([cv2.resize(img, dsize=(1024, 1024), interpolation=cv2.INTER_CUBIC) for img in list(map(imread, fpaths2))])
         images = np.concatenate([images1, images2])
 
     else:
@@ -75,7 +77,7 @@ def get_x_standardized(obj, mode='train'):
 
 
 def get_label(obj):
-    fpattern = os.path.join(DATASET_PATH, f'{obj}/test/*/*.png')
+    fpattern = os.path.join(DATASET_PATH, f'{obj}/test/*/*')
     fpaths = sorted(glob(fpattern))
     fpaths1 = list(filter(lambda fpath: os.path.basename(os.path.dirname(fpath)) != 'good', fpaths))
     fpaths2 = list(filter(lambda fpath: os.path.basename(os.path.dirname(fpath)) == 'good', fpaths))
@@ -88,11 +90,11 @@ def get_label(obj):
 
 
 def get_mask(obj):
-    fpattern = os.path.join(DATASET_PATH, f'{obj}/ground_truth/*/*.png')
+    fpattern = os.path.join(DATASET_PATH, f'{obj}/ground_truth/*/*')
     fpaths = sorted(glob(fpattern))
     masks = np.asarray(list(map(lambda fpath: resize(imread(fpath), (256, 256)), fpaths)))
     Nanomaly = masks.shape[0]
-    Nnormal = len(glob(os.path.join(DATASET_PATH, f'{obj}/test/good/*.png')))
+    Nnormal = len(glob(os.path.join(DATASET_PATH, f'{obj}/test/good/*')))
 
     masks[masks <= 128] = 0
     masks[masks > 128] = 255
