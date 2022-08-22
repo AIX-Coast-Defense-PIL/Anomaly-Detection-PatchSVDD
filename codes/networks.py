@@ -18,7 +18,7 @@ def load(self, name, path):
 
 # @staticmethod
 def fpath_from_name(name, i_epoch, aurocs):
-    return f'ckpts/{name}/encoder_nohier_ep{i_epoch}_ac{aurocs}.pkl'
+    return f'ckpts/{name}/basic_ep{i_epoch}_ac{aurocs}.pkl'
 
 class Encoder(nn.Module):
     def __init__(self, K, D=64, bias=True):
