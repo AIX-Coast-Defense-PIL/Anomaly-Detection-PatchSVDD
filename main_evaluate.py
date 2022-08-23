@@ -1,8 +1,14 @@
 import argparse
+import os
+
+# gpu 지정
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--obj', default='screw')
+parser.add_argument('--obj', default='bottle')
+parser.add_argument('--ckpt', default='enchier.pkl')
 args = parser.parse_args()
 
 
@@ -11,7 +17,7 @@ def do_evaluate_encoder_multiK(obj):
     from codes.networks import EncoderHier
 
     enc = EncoderHier(K=64, D=64).cuda()
-    enc.load(obj)
+    enc.load(obj, args.ckpt)
     enc.eval()
     results = eval_encoder_NN_multiK(enc, obj)
 

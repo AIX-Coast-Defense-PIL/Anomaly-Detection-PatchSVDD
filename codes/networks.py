@@ -6,6 +6,19 @@ from .utils import makedirpath
 
 __all__ = ['EncoderHier', 'Encoder', 'PositionClassifier']
 
+def save(self, name, i_epoch, aurocs):
+    fpath = self.fpath_from_name(name, i_epoch, aurocs)
+    makedirpath(fpath)
+    torch.save(self.state_dict(), fpath)
+
+def load(self, name, path):
+    # fpath = self.fpath_from_name(name, i_epoch, aurocs)
+    fpath = f'ckpts/{name}/{path}'
+    self.load_state_dict(torch.load(fpath))
+
+# @staticmethod
+def fpath_from_name(name, i_epoch, aurocs):
+    return f'ckpts/{name}/basic_ep{i_epoch}_ac{aurocs}.pkl'
 
 class Encoder(nn.Module):
     def __init__(self, K, D=64, bias=True):
@@ -36,19 +49,16 @@ class Encoder(nn.Module):
         h = torch.tanh(h)
 
         return h
+    
+    def save(self, name, i_epoch, aurocs):
+        return save(self, name, i_epoch, aurocs)
 
-    def save(self, name):
-        fpath = self.fpath_from_name(name)
-        makedirpath(fpath)
-        torch.save(self.state_dict(), fpath)
-
-    def load(self, name):
-        fpath = self.fpath_from_name(name)
-        self.load_state_dict(torch.load(fpath))
+    def load(self, name, path):
+        return load(self, name, path)
 
     @staticmethod
-    def fpath_from_name(name):
-        return f'ckpts/{name}/encoder_nohier.pkl'
+    def fpath_from_name(name, i_epoch, aurocs):
+        return fpath_from_name(name, i_epoch, aurocs)
 
 
 def forward_hier(x, emb_small, K):
@@ -115,18 +125,15 @@ class EncoderDeep(nn.Module):
 
         return h
 
-    def save(self, name):
-        fpath = self.fpath_from_name(name)
-        makedirpath(fpath)
-        torch.save(self.state_dict(), fpath)
+    def save(self, name, i_epoch, aurocs):
+        return save(self, name, i_epoch, aurocs)
 
-    def load(self, name):
-        fpath = self.fpath_from_name(name)
-        self.load_state_dict(torch.load(fpath))
+    def load(self, name, path):
+        return load(self, name, path)
 
     @staticmethod
-    def fpath_from_name(name):
-        return f'ckpts/{name}/encdeep.pkl'
+    def fpath_from_name(name, i_epoch, aurocs):
+        return fpath_from_name(name, i_epoch, aurocs)
 
 
 class EncoderHier(nn.Module):
@@ -159,18 +166,15 @@ class EncoderHier(nn.Module):
 
         return h
 
-    def save(self, name):
-        fpath = self.fpath_from_name(name)
-        makedirpath(fpath)
-        torch.save(self.state_dict(), fpath)
+    def save(self, name, i_epoch, aurocs):
+        return save(self, name, i_epoch, aurocs)
 
-    def load(self, name):
-        fpath = self.fpath_from_name(name)
-        self.load_state_dict(torch.load(fpath))
+    def load(self, name, path):
+        return load(self, name, path)
 
     @staticmethod
-    def fpath_from_name(name):
-        return f'ckpts/{name}/enchier.pkl'
+    def fpath_from_name(name, i_epoch, aurocs):
+        return fpath_from_name(name, i_epoch, aurocs)
 
 
 ################
@@ -222,21 +226,19 @@ class PositionClassifier(nn.Module):
         self.fc2 = nn.Linear(128, 128)
         self.act2 = nn.LeakyReLU(0.1)
 
-        self.fc3 = NormalizedLinear(128, class_num)
+        self.fc3 = NormalizedLinear(128, class_num)   # 8 개중 하나로 분류
 
         self.K = K
 
-    def save(self, name):
-        fpath = self.fpath_from_name(name)
-        makedirpath(fpath)
-        torch.save(self.state_dict(), fpath)
+    def save(self, name, i_epoch, aurocs):
+        return save(self, name, i_epoch, aurocs)
 
-    def load(self, name):
-        fpath = self.fpath_from_name(name)
-        self.load_state_dict(torch.load(fpath))
+    def load(self, name, path):
+        return load(self, name, path)
 
-    def fpath_from_name(self, name):
-        return f'ckpts/{name}/position_classifier_K{self.K}.pkl'
+    @staticmethod
+    def fpath_from_name(name, i_epoch, aurocs):
+        return fpath_from_name(name, i_epoch, aurocs)
 
     @staticmethod
     def infer(c, enc, batch):
@@ -245,15 +247,15 @@ class PositionClassifier(nn.Module):
         h1 = enc(x1s)
         h2 = enc(x2s)
 
-        logits = c(h1, h2)
-        loss = xent(logits, ys)
+        logits = c(h1, h2)                    # c가 이 아래의 forward
+        loss = xent(logits, ys)               # 추정한 위치(logits)와 저장한 위치(ys)의 차
         return loss
 
     def forward(self, h1, h2):
         h1 = h1.view(-1, self.D)
         h2 = h2.view(-1, self.D)
 
-        h = h1 - h2
+        h = h1 - h2                           # 두 지점의 feature의 차. 이를 8개중 하나로 분류 # feature 추출 방식은 svdd에서와 동일
 
         h = self.fc1(h)
         h = self.act1(h)
@@ -261,6 +263,6 @@ class PositionClassifier(nn.Module):
         h = self.fc2(h)
         h = self.act2(h)
 
-        h = self.fc3(h)
+        h = self.fc3(h)                       
         return h
 
