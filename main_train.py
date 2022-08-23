@@ -17,9 +17,10 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "2"
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument('--obj', default='carpet', type=str) # hazelnut
+parser.add_argument('--obj', default='ocean', type=str) # hazelnut
 parser.add_argument('--lambda_value', default=1e-3, type=float) # 1
 parser.add_argument('--D', default=64, type=int)
+parser.add_argument('--annotation', default=False, type=int)
 
 parser.add_argument('--epochs', default=300, type=int)
 parser.add_argument('--lr', default=1e-4, type=float)
@@ -31,6 +32,7 @@ def train():
     obj = args.obj
     D = args.D
     lr = args.lr
+    annotation = args.annotation
         
     with task('Networks'):
         enc = EncoderHier(64, D).cuda()
@@ -79,16 +81,20 @@ def train():
                 loss.backward()
                 opt.step()
 
-        aurocs = eval_encoder_NN_multiK(enc, obj)
-        log_result(obj, aurocs, i_epoch)
+        if annotation:
+            aurocs = eval_encoder_NN_multiK(enc, obj)
+            log_result(obj, aurocs, i_epoch)
 
-        # sum aurocs 가 갱신되거나, epoch10이 지나면 저장
-        if best_aurocs < aurocs['det_sum']:
-            best_aurocs = aurocs['det_sum']
-            enc.save(obj, i_epoch, best_aurocs)
-        elif i_epoch % 30 == 0:
-            enc.save(obj, i_epoch, aurocs['det_sum'])
-
+            # sum aurocs 가 갱신되거나, epoch10이 지나면 저장
+            if best_aurocs < aurocs['det_sum']:
+                best_aurocs = aurocs['det_sum']
+                enc.save(obj, i_epoch, best_aurocs)
+            elif i_epoch % 30 == 0:
+                enc.save(obj, i_epoch, aurocs['det_sum'])
+        else:
+            print(f'trained epoch {i_epoch}')
+            if i_epoch % 5 == 0:
+                enc.save(obj, i_epoch, 0)
 
 
 def log_result(obj, aurocs, i_epoch):

@@ -50,16 +50,19 @@ def set_root_path(new_path):
 def get_x(obj, mode='train'):
     fpattern = os.path.join(DATASET_PATH, f'{obj}/{mode}/*/*')
     fpaths = sorted(glob(fpattern))
+    
+    gt_fpattern = os.path.join(DATASET_PATH, f'{obj}/ground_truth/*/*')
+    gt_fpaths = sorted(glob(gt_fpattern))
 
-    if mode == 'test':     # eval 시 불러오는 데이터 위치 지정
-        fpaths1 = list(filter(lambda fpath: os.path.basename(os.path.dirname(fpath)) != 'good', fpaths))
-        fpaths2 = list(filter(lambda fpath: os.path.basename(os.path.dirname(fpath)) == 'good', fpaths))
+    if mode == 'test' and len(gt_fpaths)!=0:     # eval 시 불러오는 데이터 위치 지정
+            fpaths1 = list(filter(lambda fpath: os.path.basename(os.path.dirname(fpath)) != 'good', fpaths))
+            fpaths2 = list(filter(lambda fpath: os.path.basename(os.path.dirname(fpath)) == 'good', fpaths))
 
-        images1 = np.asarray(list(map(imread, fpaths1)))
-        # images2 = np.asarray(list(map(imread, fpaths2)))
-        images2 = np.asarray([cv2.resize(img, dsize=(1024, 1024), interpolation=cv2.INTER_CUBIC) for img in list(map(imread, fpaths2))])
-        images = np.concatenate([images1, images2])
-
+            images1 = np.asarray(list(map(imread, fpaths1)))
+            images2 = np.asarray(list(map(imread, fpaths2)))
+            # image size 달라서 충돌 시 아래 코드를 대신 사용
+            # images2 = np.asarray([cv2.resize(img, dsize=(1024, 1024), interpolation=cv2.INTER_CUBIC) for img in list(map(imread, fpaths2))])
+            images = np.concatenate([images1, images2])
     else:
         images = np.asarray(list(map(imread, fpaths)))
 
