@@ -101,24 +101,31 @@ class EncoderDeep(nn.Module):
     def forward(self, x):
         h = self.conv1(x)
         h = F.leaky_relu(h, 0.1)
+        # batch noraml
 
         h = self.conv2(h)
         h = F.leaky_relu(h, 0.1)
+        # batch noraml
 
         h = self.conv3(h)
         h = F.leaky_relu(h, 0.1)
+        # batch noraml
 
         h = self.conv4(h)
         h = F.leaky_relu(h, 0.1)
+        # batch noraml
 
         h = self.conv5(h)
         h = F.leaky_relu(h, 0.1)
+        # batch noraml
 
         h = self.conv6(h)
         h = F.leaky_relu(h, 0.1)
+        # batch noraml
 
         h = self.conv7(h)
         h = F.leaky_relu(h, 0.1)
+        # batch noraml
 
         h = self.conv8(h)
         h = torch.tanh(h)
