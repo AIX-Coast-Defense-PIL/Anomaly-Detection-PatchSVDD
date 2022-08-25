@@ -3,7 +3,7 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader
 from .utils import PatchDataset_NCHW, NHWC2NCHW, distribute_scores
-
+import time
 
 __all__ = ['eval_encoder_NN_multiK', 'eval_embeddings_NN_multiK', 'make_maps_NN_multiK']
 
@@ -91,33 +91,70 @@ def eval_embeddings_NN_multiK(obj, embs64, embs32, NN=1):
     }
 
 def make_maps_NN_multiK(enc, obj, NN=1):
+    t0 = time.time()
     # from eval_encoder_NN_multiK
     x_tr = mvtecad.get_x_standardized(obj, mode='train')
-    x_te = mvtecad.get_x_standardized(obj, mode='test')
+    t1 = time.time()
+    print("x_tr = mvtecad.get_x_standardized(obj, mode='train')- {} sec".format(t1-t0))
 
+    x_te = mvtecad.get_x_standardized(obj, mode='test')
+    t2 = time.time()
+    print("x_te = mvtecad.get_x_standardized(obj, mode='test') - {} sec".format(t2-t1))
+    
     embs64_tr = infer(x_tr, enc, K=64, S=16)
+    t3 = time.time()
+    print("embs64_tr = infer(x_tr, enc, K=64, S=16) - {} sec".format(t3-t2))
+
     embs64_te = infer(x_te, enc, K=64, S=16)
+    t4 = time.time()
+    print("embs64_te = infer(x_te, enc, K=64, S=16) - {} sec".format(t4-t3))
 
     # x_tr = mvtecad.get_x_standardized(obj, mode='train')
     # x_te = mvtecad.get_x_standardized(obj, mode='test')
 
     embs32_tr = infer(x_tr, enc.enc, K=32, S=4)
+    t5 = time.time()
+    print("embs32_tr = infer(x_tr, enc.enc, K=32, S=4)- {} sec".format(t5-t4))
+
     embs32_te = infer(x_te, enc.enc, K=32, S=4)
+    t6 = time.time()
+    print("embs32_te = infer(x_te, enc.enc, K=32, S=4) - {} sec".format(t6-t5))
 
     embs64 = embs64_tr, embs64_te
+    t7 = time.time()
+    print("embs64 = embs64_tr, embs64_te - {} sec".format(t7-t6))
+
     embs32 = embs32_tr, embs32_te
 
     # from eval_embeddings_NN_multiK
     emb_tr, emb_te = embs64
+
+    t8 = time.time()
     maps_64 = measure_emb_NN(emb_te, emb_tr, method='kdt', NN=NN)
+    t9 = time.time()
+    print("maps_64 = measure_emb_NN(emb_te, emb_tr, method='kdt', NN=NN) - {} sec".format(t9-t8))
+
     maps_64 = distribute_scores(maps_64, (256, 256), K=64, S=16)
+    t10 = time.time()
+    print("maps_64 = distribute_scores(maps_64, (256, 256), K=64, S=16) - {} sec".format(t10-t9))
 
     emb_tr, emb_te = embs32
-    maps_32 = measure_emb_NN(emb_te, emb_tr, method='ngt', NN=NN)
+    t11 = time.time()
+    maps_32 = measure_emb_NN(emb_te, emb_tr, method='ngt', NN=NN)    
+    t12 = time.time()
+    print("maps_32 = measure_emb_NN(emb_te, emb_tr, method='ngt', NN=NN) - {} sec".format(t12-t11))
+
     maps_32 = distribute_scores(maps_32, (256, 256), K=32, S=4)
+    t13 = time.time()
+    print("maps_32 = distribute_scores(maps_32, (256, 256), K=32, S=4) - {} sec".format(t13-t12))
 
     maps_sum = maps_64 + maps_32
+    t14 = time.time()
+    print("maps_sum = maps_64 + maps_32 - {} sec".format(t14-t13))
+
     maps_mult = maps_64 * maps_32
+    t15 = time.time()
+    print("maps_mult = maps_64 * maps_32 - {} sec".format(t15-t14))
 
     return {
         'maps_64': maps_64,
