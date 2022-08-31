@@ -4,7 +4,7 @@ from glob import glob
 import pandas as pd
 import random
 
-DATASET_PATH = '/home/hajung/Anomaly-Detection-PatchSVDD-PyTorch/datasets/ocean/'
+DATASET_PATH = '/home/hajung/Anomaly-Detection-PatchSVDD-PyTorch/datasets/ocean_all/'
 
 # exel 파일을 활용해, 부표, 고무보트, 미상 물체가 있는 이미지를 다른 이미지와 분리
 def divide_by_exel(DATASET_PATH):
@@ -21,13 +21,30 @@ def divide_by_exel(DATASET_PATH):
             filename = str(int(labels.loc[i][0])).zfill(4)+'.jpg'
             shutil.move(DATASET_PATH + 'train/' + filename, DATASET_PATH + 'test/unknown/' + filename)
 
+def divide_by_exel_index(DATASET_PATH):
+    labels = pd.read_excel(os.path.join(DATASET_PATH, 'masked_class_labels.xlsx'))
+
+    for i in range(len(labels['object'])):
+        if  labels.loc[i]['object'] == 0 :
+            filename = str(int(labels.loc[i][0])).zfill(4)+'.png'
+            shutil.move(DATASET_PATH + 'train/masked/' + filename, DATASET_PATH + 'train/background/' + filename)
+        elif labels.loc[i]['object'] == 1:
+            filename = str(int(labels.loc[i][0])).zfill(4)+'.png'
+            shutil.move(DATASET_PATH + 'train/masked/' + filename, DATASET_PATH + 'test/rubber_boat/' + filename)
+        elif  labels.loc[i]['object'] == 2 :
+            filename = str(int(labels.loc[i][0])).zfill(4)+'.png'
+            shutil.move(DATASET_PATH + 'train/masked/' + filename, DATASET_PATH + 'test/buoy/' + filename)
+        else:
+            filename = str(int(labels.loc[i][0])).zfill(4)+'.png'
+            shutil.move(DATASET_PATH + 'train/masked/' + filename, DATASET_PATH + 'test/unknown/' + filename)
+
 # good 이미지 중 20개를 랜덤하게 이동
 def move_goods_randomly(DATASET_PATH):
-    fpattern = os.path.join(DATASET_PATH, f'train/good/*')
+    fpattern = os.path.join(DATASET_PATH, f'train/background/*')
     fpaths = sorted(glob(fpattern))
     fpaths = random.sample(fpaths, 20)
     for fpath in fpaths:
-        next_path = os.path.join(DATASET_PATH, 'test/good/' + fpath.split('/')[-1])
+        next_path = os.path.join(DATASET_PATH, 'test/background/' + fpath.split('/')[-1])
         shutil.move(fpath, next_path)
 
 
@@ -55,4 +72,5 @@ def pick_images_by_exel(DATASET_PATH):
 if __name__ =='__main__':
     # divide_by_exel(DATASET_PATH)
     # move_goods_randomly(DATASET_PATH)
-    pick_images_by_exel('/home/hajung/Anomaly-Detection-PatchSVDD-PyTorch/datasets/ocean_partial01/')
+    # pick_images_by_exel('/home/hajung/Anomaly-Detection-PatchSVDD-PyTorch/datasets/ocean_partial01/')
+    divide_by_exel_index('/home/hajung/Anomaly-Detection-PatchSVDD-PyTorch/datasets/ocean_all/')
