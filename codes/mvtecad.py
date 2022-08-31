@@ -48,12 +48,14 @@ def set_root_path(new_path):
 
 
 def get_x(obj, mode='train'):
-    fpattern = os.path.join(DATASET_PATH, f'{obj}/{mode}/*/*')
+    if mode=='train' or mode=='test':
+        fpattern = os.path.join(DATASET_PATH, f'{obj}/{mode}/*/*')
+    else:
+        fpattern = os.path.join(DATASET_PATH, f'{obj}/{mode}/*')
     fpaths = sorted(glob(fpattern))
     
     gt_fpattern = os.path.join(DATASET_PATH, f'{obj}/ground_truth/*/*')
     gt_fpaths = sorted(glob(gt_fpattern))
-
     if mode == 'test' and len(gt_fpaths)!=0:     # eval 시 불러오는 데이터 위치 지정
             fpaths1 = list(filter(lambda fpath: os.path.basename(os.path.dirname(fpath)) != 'good', fpaths))
             fpaths2 = list(filter(lambda fpath: os.path.basename(os.path.dirname(fpath)) == 'good', fpaths))
@@ -64,7 +66,8 @@ def get_x(obj, mode='train'):
             # images2 = np.asarray([cv2.resize(img, dsize=(1024, 1024), interpolation=cv2.INTER_CUBIC) for img in list(map(imread, fpaths2))])
             images = np.concatenate([images1, images2])
     else:
-        images = np.asarray(list(map(imread, fpaths)))
+        # images = np.asarray(list(map(imread, fpaths)))
+        images = np.asarray([cv2.resize(img, dsize=(1024, 1024), interpolation=cv2.INTER_CUBIC) for img in list(map(imread, fpaths))])
 
     if images.shape[-1] != 3:
         images = gray2rgb(images)
@@ -106,6 +109,12 @@ def get_mask(obj):
 
     return results
 
+def get_MaSTr1325_mask(obj):
+    fpattern = os.path.join(DATASET_PATH, f'{obj}/ground_truth/*/*')
+    fpaths = sorted(glob(fpattern))
+    masks = np.asarray(list(map(lambda fpath: resize(imread(fpath), (256, 256)), fpaths)))
+
+    return masks
 
 def get_mean(obj):
     images = get_x(obj, mode='train')
