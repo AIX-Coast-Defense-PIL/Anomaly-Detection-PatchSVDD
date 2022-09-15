@@ -18,7 +18,7 @@ def load(self, name, path):
 
 # @staticmethod
 def fpath_from_name(name, i_epoch, aurocs):
-    return f'ckpts/{name}/basic_ep{i_epoch}_ac{aurocs}.pkl'
+    return f'ckpts/{name}/bn100_ep{i_epoch}_ac{aurocs}.pkl'
 
 class Encoder(nn.Module):
     def __init__(self, K, D=64, bias=True):
@@ -29,6 +29,9 @@ class Encoder(nn.Module):
         self.conv3 = nn.Conv2d(64, 128, 5, 2, 0, bias=bias)
         self.conv4 = nn.Conv2d(128, D, 5, 1, 0, bias=bias)
 
+        self.bn1 = nn.BatchNorm2d(64)
+        self.bn2 = nn.BatchNorm2d(128)
+
         self.K = K
         self.D = D
         self.bias = bias
@@ -36,14 +39,17 @@ class Encoder(nn.Module):
     def forward(self, x):
         h = self.conv1(x)
         h = F.leaky_relu(h, 0.1)
+        h = self.bn1(h)
 
         h = self.conv2(h)
         h = F.leaky_relu(h, 0.1)
+        h = self.bn1(h)
 
         h = self.conv3(h)
 
         if self.K == 64:
             h = F.leaky_relu(h, 0.1)
+            h = self.bn2(h)
             h = self.conv4(h)
 
         h = torch.tanh(h)
@@ -95,37 +101,41 @@ class EncoderDeep(nn.Module):
         self.conv7 = nn.Conv2d(32, 32, 3, 1, 0, bias=bias)
         self.conv8 = nn.Conv2d(32, D, 3, 1, 0, bias=bias)
 
+        self.bn1 = nn.BatchNorm2d(32)
+        self.bn2 = nn.BatchNorm2d(64)
+        self.bn3 = nn.BatchNorm2d(128)
+
         self.K = K
         self.D = D
 
     def forward(self, x):
         h = self.conv1(x)
         h = F.leaky_relu(h, 0.1)
-        # batch noraml
+        h = self.bn1(h)
 
         h = self.conv2(h)
         h = F.leaky_relu(h, 0.1)
-        # batch noraml
+        h = self.bn2(h)
 
         h = self.conv3(h)
         h = F.leaky_relu(h, 0.1)
-        # batch noraml
+        h = self.bn3(h)
 
         h = self.conv4(h)
         h = F.leaky_relu(h, 0.1)
-        # batch noraml
+        h = self.bn3(h)
 
         h = self.conv5(h)
         h = F.leaky_relu(h, 0.1)
-        # batch noraml
+        h = self.bn2(h)
 
         h = self.conv6(h)
         h = F.leaky_relu(h, 0.1)
-        # batch noraml
+        h = self.bn1(h)
 
         h = self.conv7(h)
         h = F.leaky_relu(h, 0.1)
-        # batch noraml
+        h = self.bn1(h)
 
         h = self.conv8(h)
         h = torch.tanh(h)
@@ -158,6 +168,7 @@ class EncoderHier(nn.Module):
 
         self.conv1 = nn.Conv2d(D, 128, 2, 1, 0, bias=bias)
         self.conv2 = nn.Conv2d(128, D, 1, 1, 0, bias=bias)
+        self.bn = nn.BatchNorm2d(128)
 
         self.K = K
         self.D = D
@@ -167,6 +178,7 @@ class EncoderHier(nn.Module):
 
         h = self.conv1(h)
         h = F.leaky_relu(h, 0.1)
+        h = self.bn(h)
 
         h = self.conv2(h)
         h = torch.tanh(h)
