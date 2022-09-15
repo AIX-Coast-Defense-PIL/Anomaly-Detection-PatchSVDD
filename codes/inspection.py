@@ -163,6 +163,26 @@ def make_maps_NN_multiK(enc, obj, NN=1):
         'maps_mult': maps_mult,
     }
 
+def eval_encoder(enc, obj):  # for t-SNE     # eval_encoder_NN_multiK() 까지의 결과만 return
+    x_tr = mvtecad.get_x_standardized(obj, mode='train')
+    x_te = mvtecad.get_x_standardized(obj, mode='test')
+
+    embs64_tr = infer(x_tr, enc, K=64, S=16)
+    embs64_te = infer(x_te, enc, K=64, S=16)
+
+    x_tr = mvtecad.get_x_standardized(obj, mode='train')
+    x_te = mvtecad.get_x_standardized(obj, mode='test')
+
+    embs32_tr = infer(x_tr, enc.enc, K=32, S=4)
+    embs32_te = infer(x_te, enc.enc, K=32, S=4)
+
+    return {
+        'embs64_tr' : embs64_tr,
+        'embs64_te' : embs64_te,
+        'embs32_tr' : embs32_tr,
+        'embs32_te' : embs32_te
+    }
+
 ########################
 
 def measure_emb_NN(emb_te, emb_tr, method='kdt', NN=1):
