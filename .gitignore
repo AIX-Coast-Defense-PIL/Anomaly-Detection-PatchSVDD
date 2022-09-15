@@ -4,3 +4,4 @@ datasets/
 ckpts/
 logs/
 anomaly_maps/
+embedding_features/
