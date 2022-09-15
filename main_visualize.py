@@ -52,13 +52,13 @@ def save_maps(obj, maps):
             axes[0].imshow(image)
             axes[0].set_axis_off()
 
-            print(maps[n].max())
-            # axes[1].imshow(maps[n], vmax=maps[n].max(), cmap='Reds')
-            axes[1].imshow(maps[n], vmax=5, cmap='Reds')
+            print(f'[n{n:03d}.png]', maps[n].max())
+            maxscore = 3 # maps[n].max()
+            axes[1].imshow(maps[n], vmax=maxscore, cmap='Reds')
             axes[1].set_axis_off()
 
         plt.tight_layout()
-        fpath = f'anomaly_maps/{obj}/{args.ckpt}/n{n:03d}.png'
+        fpath = f'anomaly_maps/{obj}/{args.ckpt}_vmax{maxscore}/n{n:03d}.png'
         makedirpath(fpath)
         plt.savefig(fpath)
         plt.close()

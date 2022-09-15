@@ -13,7 +13,7 @@ import os
 # device = torch.device('cuda:2' if torch.cuda.is_available() else 'cpu')
 # print(device)
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"] = "2"
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 parser = argparse.ArgumentParser()
 
@@ -22,7 +22,7 @@ parser.add_argument('--lambda_value', default=1e-3, type=float) # 1
 parser.add_argument('--D', default=64, type=int)
 parser.add_argument('--annotation', default=False, type=int)
 
-parser.add_argument('--epochs', default=300, type=int)
+parser.add_argument('--epochs', default=301, type=int)
 parser.add_argument('--lr', default=1e-4, type=float)
 
 args = parser.parse_args()
